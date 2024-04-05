@@ -1,4 +1,9 @@
-svg {
-  width: 1000px;
-  height: 1000px;
+h1 {
+  color: red;
+}
+
+.player-option:hover {
+  fill: cyan;
+  transition: fill 150ms ease;
+  cursor: pointer;
 }

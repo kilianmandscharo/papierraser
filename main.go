@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,45 +25,35 @@ func checkOrigin(r *http.Request) bool {
 	return true
 }
 
+var track = types.Track{
+	Width:  20,
+	Height: 10,
+	Outer: []types.Point{
+		{X: 0, Y: 0}, {X: 20, Y: 0}, {X: 20, Y: 10}, {X: 0, Y: 10},
+	},
+	Inner: []types.Point{
+		{X: 4, Y: 3}, {X: 16, Y: 3}, {X: 16, Y: 7}, {X: 4, Y: 7},
+	},
+	Finish: [2]types.Point{
+		{X: 0, Y: 5}, {X: 4, Y: 5},
+	},
+}
+
 func main() {
-	track := types.Track{
-		Width:  50,
-		Height: 50,
-		Outer: []types.Point{
-			{X: 0, Y: 0}, {X: 50, Y: 0}, {X: 50, Y: 50}, {X: 0, Y: 50},
-		},
-		Inner: []types.Point{
-			{X: 15, Y: 15}, {X: 35, Y: 15}, {X: 35, Y: 35}, {X: 15, Y: 35},
-		},
-		Finish: [2]types.Point{
-			{X: 0, Y: 25}, {X: 15, Y: 25},
-		},
-	}
-
-	paths := make(map[string]types.Path)
-	paths["1"] = types.Path{
-		{X: 5, Y: 25},
-	}
-	paths["2"] = types.Path{
-		{X: 10, Y: 25},
-	}
-
-	race := types.Race{
-		Players: []types.Player{
-			{Id: "1", Name: "Mason"},
-			{Id: "2", Name: "Dixon"},
-		},
-		Paths: paths,
-		Track: track,
-	}
+	race := types.NewRace(track)
+	race.AddPlayer("Mason")
 
 	http.Handle("/", templ.Handler(components.Index(race)))
 	http.HandleFunc("/ws", wsHandler)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn := unwrap(upgrader.Upgrade(w, r, nil))
+
+	race := types.NewRace(track)
+	race.AddPlayer("Mason")
 
 	for {
 		messageType, p, err := conn.ReadMessage()
@@ -69,7 +62,26 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(messageType, string(p))
+    var point types.Point
+    err = json.Unmarshal(p, &point)
+    if err != nil {
+      fmt.Println("ERROR:", err)
+      return
+    }
+    
+    race.Move(point)
+
+    var buf bytes.Buffer
+    err = components.Track(race).Render(context.Background(), &buf)
+    if err != nil {
+      fmt.Println(err)
+      return;
+    }
+
+    if err := conn.WriteMessage(messageType, buf.Bytes()); err != nil {
+      fmt.Println(err)
+      return;
+    }
 	}
 }
 
