@@ -7,3 +7,34 @@ h1 {
   transition: fill 150ms ease;
   cursor: pointer;
 }
+
+#connections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+#connections div {
+  display: flex;
+  align-items: center;
+}
+
+#connections .connected::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: green;
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+#connections .disconnected::before {
+  content: "";
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  display: inline-block;
+  margin-right: 0.5rem;
+}

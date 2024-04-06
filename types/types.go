@@ -1,16 +1,21 @@
 package types
 
+import "github.com/gorilla/websocket"
+
 type Player struct {
-	Id   int
-	Name string
-	Path Path
+	Id        int
+	Name      string
+	Path      Path
+	Conn      *websocket.Conn
+	Connected bool
 }
 
-func NewPlayer(id int, name string, startingPosition Point) Player {
+func NewPlayer(id int, name string, startingPosition Point, conn *websocket.Conn) Player {
 	return Player{
 		Id:   id,
 		Name: name,
 		Path: []Point{startingPosition},
+		Conn: conn,
 	}
 }
 
@@ -51,12 +56,12 @@ func (p *Player) GetVelocity() Velocity {
 }
 
 func (p *Player) Move(pos Point) {
-  p.Path = append(p.Path, pos)
+	p.Path = append(p.Path, pos)
 }
 
 type Point struct {
-  X int `json:"x"`
-  Y int `json:"y"`
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 type Velocity struct {
@@ -83,14 +88,14 @@ func NewRace(track Track) Race {
 	return Race{Track: track}
 }
 
-func (r *Race) AddPlayer(name string) {
-  if len(r.Players) == 0 {
-    r.Turn = 1
-  }
+func (r *Race) AddPlayer(name string, conn *websocket.Conn) {
+	if len(r.Players) == 0 {
+		r.Turn = 1
+	}
 
 	id := r.nextId()
 	pos := r.GetStartingPosition()
-	r.Players = append(r.Players, NewPlayer(id, name, pos))
+	r.Players = append(r.Players, NewPlayer(id, name, pos, conn))
 }
 
 func (r *Race) GetStartingPosition() Point {
@@ -116,17 +121,19 @@ func (r *Race) nextId() int {
 }
 
 func (r *Race) Move(pos Point) {
-  if index := r.currentPlayer(); index > -1 {
-    r.Players[index].Move(pos)
-  }
+	if index := r.currentPlayer(); index > -1 {
+		r.Players[index].Move(pos)
+	}
 }
 
 func (r *Race) currentPlayer() int {
-  for index, player := range r.Players {
-    if player.Id == r.Turn {
-      return index
-    }
-  }
+	for index, player := range r.Players {
+		if player.Id == r.Turn {
+			return index
+		}
+	}
 
-  return -1
+	return -1
 }
+
+type Connections = map[string]*websocket.Conn

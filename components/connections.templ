@@ -1,0 +1,13 @@
+package components
+
+import "github.com/kilianmandscharo/papierraser/types"
+
+templ Connections(conns types.Connections) {
+	for addr, conn := range conns {
+		if conn == nil {
+			<div class="disconnected">{ addr }</div>
+		} else {
+			<div class="connected">{ addr }</div>
+		}
+	}
+}

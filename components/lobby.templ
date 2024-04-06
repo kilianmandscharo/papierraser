@@ -1,0 +1,10 @@
+package components
+
+import "github.com/kilianmandscharo/papierraser/types"
+
+templ Lobby(conns types.Connections) {
+	<h1>Lobby</h1>
+	<div id="connections">
+		@Connections(conns)
+	</div>
+}

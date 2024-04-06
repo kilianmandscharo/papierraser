@@ -1,105 +1,18 @@
 package components
 
-import "github.com/kilianmandscharo/papierraser/types"
-import "strconv"
-import "github.com/kilianmandscharo/papierraser/utils"
-import "fmt"
-
-templ Index(race types.Race) {
+templ Index() {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
-			<script src="https://unpkg.com/htmx.org@1.9.11"></script>
-			<script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/ws.js"></script>
-      <link rel="stylesheet" href="/static/css/styles.css"/>
 			<title>Papierraser</title>
+			<script src="/static/js/htmx.min.js"></script>
+			<link rel="stylesheet" href="/static/css/styles.css"/>
 		</head>
 		<body>
-			<div>
-				<h1>Papierraser</h1>
-        <div id="track-container">@Track(race)</div>
-			</div>
-      @Script()
+			<div id="content"></div>
+			<script src="/static/js/main.js"></script>
 		</body>
 	</html>
-}
-
-templ Script() {
-  <script>
-    const socket = new WebSocket("ws://localhost:8080/ws");
-    const trackContainer = document.getElementById("track-container");
-
-    function connectOptions() {
-      const options = document.querySelectorAll(".player-option");
-      if (!options) return;
-      options.forEach((option) => {
-        const [_, rest] = option.id.split("-");
-        const [x, y] = rest.split(",")
-        option.addEventListener("click", () => {
-          if (socket) {
-            socket.send(JSON.stringify({x: parseInt(x), y: parseInt(y)}));
-          }
-        });
-      });
-    }
-
-    socket.addEventListener("open", () => {
-      console.log("connected");
-      connectOptions();
-    })
-
-    socket.addEventListener("message", (evt) => {
-      console.log("message");
-      trackContainer.innerHTML = evt.data;
-      connectOptions();
-    })
-  </script>
-}
-
-templ Track(race types.Race) {
-	<svg viewBox="0 0 100 100">
-    @Grid(race.Track)
-    @Line(race.Track.Finish[0], race.Track.Finish[1], "green")
-		@Path(race.Track.Inner, "black")
-		@Path(race.Track.Outer, "black")
-    @Players(race.Players, race.Turn)
-	</svg>
-}
-
-templ Players(players []types.Player, turn int) {
-    for _, player := range players {
-      @Player(player.Path[len(player.Path) - 1], "orange")
-      if player.Id == turn {
-        @PlayerOptions(player.GetOptions())
-      }
-    }
-}
-
-templ Player(position types.Point, color string) {
-  <circle fill={ color } cx={ strconv.Itoa(position.X * 5) } cy={ strconv.Itoa(position.Y * 5) } r="2" />
-}
-
-templ PlayerOptions(options []types.Point) {
-  for _, option := range options {
-    <circle id={ fmt.Sprintf("option-%d,%d", option.X, option.Y) } class="player-option" fill="purple" cx={ strconv.Itoa(option.X * 5) } cy={ strconv.Itoa(option.Y * 5) } r="2" />
-  }
-}
-
-templ Grid(track types.Track) {
-    for x := 0; x <= track.Width; x++ {
-      <line { utils.GetVerticalLineAttrs(x, track.Height)... } stroke="lightgray" />
-    }
-    for y := 0; y <= track.Height; y++ {
-      <line { utils.GetHorizontalLineAttrs(y, track.Width)... } stroke="lightgray" />
-    }
-}
-
-templ Line(start, end types.Point, strokeColor string) {
-    <line x1={ strconv.Itoa(start.X * 5) } y1={ strconv.Itoa(start.Y * 5) } x2={ strconv.Itoa(end.X * 5) } y2={ strconv.Itoa(end.Y * 5) } stroke="green" />
-}
-
-templ Path(path types.Path, strokeColor string) {
-		<polygon points={ utils.GetPathString(path) } fill="none" stroke={ strokeColor }></polygon>
 }
