@@ -1,5 +1,29 @@
-h1 {
-  color: red;
+button {
+  background-color: #0ea5e9;
+  border: none;
+  color: white;
+  padding: 0rem 0.5rem;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 250ms ease;
+}
+
+button:hover {
+  background-color: #0284c7;
+}
+
+input {
+  height: 34px;
+  border-radius: 6px;
+  padding: 0rem 0.5rem;
+  border: solid 1px #9ca3af;
+}
+
+.divider {
+  height: 36px;
+  width: 2px;
+  background-color: #cbd5e1;
 }
 
 .player-option:hover {
@@ -8,18 +32,45 @@ h1 {
   cursor: pointer;
 }
 
-#connections {
+.connections {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  border: solid 1px #9ca3af;
+  padding: 1rem;
+  border-radius: 8px;
 }
 
-#connections div {
+.connections-header {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.connections-header-control {
+  display: flex;
+  gap: 1rem;
+}
+
+.change-name {
+  display: flex;
+  gap: 1rem;
+}
+
+.connections h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.connections .connection {
   display: flex;
   align-items: center;
 }
 
-#connections .connected::before {
+.connections .connected::before {
   content: "";
   width: 20px;
   height: 20px;
@@ -29,7 +80,7 @@ h1 {
   margin-right: 0.5rem;
 }
 
-#connections .disconnected::before {
+.connections .disconnected::before {
   content: "";
   width: 20px;
   height: 20px;

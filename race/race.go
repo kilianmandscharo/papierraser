@@ -1,7 +1,9 @@
 package race
 
 import (
+	"cmp"
 	"log"
+	"slices"
 
 	"github.com/gorilla/websocket"
 	"github.com/kilianmandscharo/papierraser/types"
@@ -73,6 +75,22 @@ func (r *Race) nextId() int {
 	}
 
 	return id + 1
+}
+
+func (r *Race) GetPlayersSorted() []types.Player {
+	playersSorted := make([]types.Player, len(r.Players))
+
+	i := 0
+	for _, player := range r.Players {
+		playersSorted[i] = player
+		i++
+	}
+
+	slices.SortFunc(playersSorted, func(a, b types.Player) int {
+		return cmp.Compare(a.Id, b.Id)
+	})
+
+	return playersSorted
 }
 
 // func (r *Race) Move(pos Point) {

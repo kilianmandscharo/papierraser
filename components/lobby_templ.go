@@ -12,7 +12,7 @@ import "bytes"
 
 import "github.com/kilianmandscharo/papierraser/types"
 
-func Lobby(players types.Players) templ.Component {
+func Lobby(players []types.Player, target string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -25,13 +25,61 @@ func Lobby(players types.Players) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Lobby</h1><div id=\"connections\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Connections(players).Render(ctx, templ_7745c5c3_Buffer)
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("Lobby - " + target)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 6, Col: 26}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h1><div class=\"connections\"><div class=\"connections-header\"><h2>Spieler</h2><div class=\"connections-header-control\"><div class=\"change-name\"><input id=\"change-name-input\" type=\"text\" placeholder=\"Name\"> <button id=\"change-name-button\">Namen ändern</button></div><div class=\"divider\"></div><button id=\"invite-button\">Einladungslink kopieren</button><div class=\"divider\"></div><button id=\"start-button\">Spiel starten</button></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		for _, player := range players {
+			if player.Conn == nil {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"connection disconnected\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 string
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 23, Col: 54}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"connection connected\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 25, Col: 51}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
 		if templ_7745c5c3_Err != nil {

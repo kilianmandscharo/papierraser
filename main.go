@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -44,16 +44,27 @@ func getGameId(r *http.Request) (string, bool) {
 	return queryStrings[0], true
 }
 
-func renderLobby(race *race.Race) []byte {
+func renderLobby(race *race.Race, target string) (string, []byte) {
 	var buf bytes.Buffer
-	err := components.Lobby(race.Players).Render(
+	err := components.Lobby(race.GetPlayersSorted(), target).Render(
 		context.Background(),
 		&buf,
 	)
 	if err != nil {
 		log.Println(err)
+		return "", []byte{}
 	}
-	return buf.Bytes()
+	return "Lobby", buf.Bytes()
+}
+
+type Message struct {
+	Type string `json:"type"`
+	Data any    `json:"data"`
+}
+
+func parseMessage(payload []byte) (Message, error) {
+	var message Message
+	return message, json.Unmarshal(payload, &message)
 }
 
 func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
@@ -75,9 +86,11 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 		defer func() {
 			ch <- state.ActionRequest{
 				GameId: gameId,
-				Updater: func(race *race.Race) []byte {
+				UpdateFunc: func(race *race.Race) {
 					race.DisconnectPlayer(addr)
-					return renderLobby(race)
+				},
+				RenderFunc: func(race *race.Race, target string) (string, []byte) {
+					return renderLobby(race, target)
 				},
 			}
 			conn.Close()
@@ -85,19 +98,42 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 
 		ch <- state.ActionRequest{
 			GameId: gameId,
-			Updater: func(race *race.Race) []byte {
+			UpdateFunc: func(race *race.Race) {
 				race.ConnectPlayer(addr, conn)
-				return renderLobby(race)
+			},
+			RenderFunc: func(race *race.Race, target string) (string, []byte) {
+				return renderLobby(race, target)
 			},
 		}
 
 		for {
-			messageType, p, err := conn.ReadMessage()
+			_, p, err := conn.ReadMessage()
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				return
 			}
-			fmt.Println(messageType, p)
+			message, err := parseMessage(p)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			switch message.Type {
+			case "ActionNameChange":
+				ch <- state.ActionRequest{
+					GameId: gameId,
+					UpdateFunc: func(race *race.Race) {
+						race.UpdatePlayerName(addr, message.Data.(string))
+					},
+					RenderFunc: func(race *race.Race, target string) (string, []byte) {
+						return renderLobby(race, target)
+					},
+				}
+			case "ActionStart":
+				log.Print("Start")
+			default:
+				log.Printf("unknown message type '%s' provided by client\n", message.Type)
+			}
 		}
 	}
 }

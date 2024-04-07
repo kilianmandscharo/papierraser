@@ -2,9 +2,28 @@ package components
 
 import "github.com/kilianmandscharo/papierraser/types"
 
-templ Lobby(players types.Players) {
-	<h1>Lobby</h1>
-	<div id="connections">
-		@Connections(players)
+templ Lobby(players []types.Player, target string) {
+	<h1>{ "Lobby - " + target }</h1>
+	<div class="connections">
+		<div class="connections-header">
+			<h2>Spieler</h2>
+			<div class="connections-header-control">
+				<div class="change-name">
+					<input id="change-name-input" type="text" placeholder="Name"/>
+					<button id="change-name-button">Namen ändern</button>
+				</div>
+				<div class="divider"></div>
+				<button id="invite-button">Einladungslink kopieren</button>
+				<div class="divider"></div>
+				<button id="start-button">Spiel starten</button>
+			</div>
+		</div>
+		for _, player := range players {
+			if player.Conn == nil {
+				<div class="connection disconnected">{ player.Name }</div>
+			} else {
+				<div class="connection connected">{ player.Name }</div>
+			}
+		}
 	</div>
 }
