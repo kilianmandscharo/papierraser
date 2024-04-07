@@ -2,12 +2,12 @@ package components
 
 import "github.com/kilianmandscharo/papierraser/types"
 
-templ Connections(conns types.Connections) {
-	for addr, conn := range conns {
-		if conn == nil {
-			<div class="disconnected">{ addr }</div>
+templ Connections(players types.Players) {
+	for _, player := range players {
+		if player.Conn == nil {
+			<div class="disconnected">{ player.Name }</div>
 		} else {
-			<div class="connected">{ addr }</div>
+			<div class="connected">{ player.Name }</div>
 		}
 	}
 }

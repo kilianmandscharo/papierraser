@@ -2,9 +2,9 @@ package components
 
 import "github.com/kilianmandscharo/papierraser/types"
 
-templ Lobby(conns types.Connections) {
+templ Lobby(players types.Players) {
 	<h1>Lobby</h1>
 	<div id="connections">
-		@Connections(conns)
+		@Connections(players)
 	</div>
 }

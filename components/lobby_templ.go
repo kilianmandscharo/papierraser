@@ -12,7 +12,7 @@ import "bytes"
 
 import "github.com/kilianmandscharo/papierraser/types"
 
-func Lobby(conns types.Connections) templ.Component {
+func Lobby(players types.Players) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -29,7 +29,7 @@ func Lobby(conns types.Connections) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Connections(conns).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Connections(players).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
