@@ -24,9 +24,41 @@ function main() {
     switch (payload.type) {
       case "Lobby":
         handleLobbyUpdate(contentContainer, payload.data, gameId, socket);
+        break;
+      case "Track":
+        handleTrackUpdate(contentContainer, payload.data, socket);
+        break;
       default:
         break;
     }
+  });
+}
+
+function handleTrackUpdate(contentContainer, html, socket) {
+  contentContainer.innerHTML = html;
+  connectOptions(
+    ".starting-position-option",
+    "ActionChooseStartingPosition",
+    socket,
+  );
+}
+
+function connectOptions(className, actionType, socket) {
+  document.querySelectorAll(className)?.forEach((option) => {
+    const [_, rest] = option.id.split("-");
+    const [x, y] = rest.split(",");
+    option.addEventListener("click", () => {
+      console.log("click");
+      console.log(option.className, socket);
+      if (socket && option.className.baseVal.length > 0) {
+        console.log("inside");
+        const payload = newPayload(actionType, {
+          x: parseInt(x),
+          y: parseInt(y),
+        });
+        socket.send(JSON.stringify(payload));
+      }
+    });
   });
 }
 
@@ -87,15 +119,3 @@ function initGameId() {
 }
 
 main();
-
-// function connectOptions() {
-//   document.querySelectorAll(".player-option")?.forEach((option) => {
-//     const [_, rest] = option.id.split("-");
-//     const [x, y] = rest.split(",");
-//     option.addEventListener("click", () => {
-//       if (socket) {
-//         socket.send(JSON.stringify({ x: parseInt(x), y: parseInt(y) }));
-//       }
-//     });
-//   });
-// }

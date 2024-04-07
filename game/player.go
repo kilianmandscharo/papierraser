@@ -1,4 +1,4 @@
-package types
+package game
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ type Player struct {
 	Name string
 	Path Path
 	Conn *websocket.Conn
+}
+
+type Velocity struct {
+	X, Y int
 }
 
 func NewPlayer(id int, conn *websocket.Conn) Player {
@@ -63,21 +67,3 @@ func (p *Player) Move(pos Point) {
 	p.Path = append(p.Path, pos)
 }
 
-type Point struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-
-type Velocity struct {
-	X, Y int
-}
-
-type Path = []Point
-
-type Track struct {
-	Width, Height int
-	Inner, Outer  Path
-	Finish        [2]Point
-}
-
-type Connections = map[string]*websocket.Conn

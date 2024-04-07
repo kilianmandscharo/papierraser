@@ -1,4 +1,4 @@
-package race
+package game
 
 import (
 	"cmp"
@@ -6,33 +6,33 @@ import (
 	"slices"
 
 	"github.com/gorilla/websocket"
-	"github.com/kilianmandscharo/papierraser/types"
 )
 
 type Race struct {
-	Track    types.Track
-	Players  types.Players
+	Track    Track
+	Players  Players
+	Started  bool
 	Finished bool
 	Turn     int
 	Winner   int
 }
 
-var track = types.Track{
+var track = Track{
 	Width:  20,
 	Height: 10,
-	Outer: []types.Point{
+	Outer: []Point{
 		{X: 0, Y: 0}, {X: 20, Y: 0}, {X: 20, Y: 10}, {X: 0, Y: 10},
 	},
-	Inner: []types.Point{
+	Inner: []Point{
 		{X: 4, Y: 3}, {X: 16, Y: 3}, {X: 16, Y: 7}, {X: 4, Y: 7},
 	},
-	Finish: [2]types.Point{
+	Finish: [2]Point{
 		{X: 0, Y: 5}, {X: 4, Y: 5},
 	},
 }
 
-func New() *Race {
-	return &Race{Track: track, Players: make(types.Players)}
+func NewRace() *Race {
+	return &Race{Track: track, Players: make(Players)}
 }
 
 func (r *Race) ConnectPlayer(addr string, conn *websocket.Conn) {
@@ -41,7 +41,7 @@ func (r *Race) ConnectPlayer(addr string, conn *websocket.Conn) {
 		r.Players[addr] = player
 	} else {
 		id := r.nextId()
-		r.Players[addr] = types.NewPlayer(id, conn)
+		r.Players[addr] = NewPlayer(id, conn)
 	}
 	log.Printf("connected %s\n", addr)
 }
@@ -61,6 +61,14 @@ func (r *Race) UpdatePlayerName(addr string, name string) {
 	}
 }
 
+func (r *Race) Start() {
+	r.Started = true
+}
+
+func (r *Race) End() {
+	r.Finished = true
+}
+
 func (r *Race) numberOfPlayers() int {
 	return len(r.Players)
 }
@@ -77,8 +85,8 @@ func (r *Race) nextId() int {
 	return id + 1
 }
 
-func (r *Race) GetPlayersSorted() []types.Player {
-	playersSorted := make([]types.Player, len(r.Players))
+func (r *Race) GetPlayersSorted() []Player {
+	playersSorted := make([]Player, len(r.Players))
 
 	i := 0
 	for _, player := range r.Players {
@@ -86,11 +94,54 @@ func (r *Race) GetPlayersSorted() []types.Player {
 		i++
 	}
 
-	slices.SortFunc(playersSorted, func(a, b types.Player) int {
+	slices.SortFunc(playersSorted, func(a, b Player) int {
 		return cmp.Compare(a.Id, b.Id)
 	})
 
 	return playersSorted
+}
+
+func (r *Race) StartingPositionsSet() bool {
+	for _, player := range r.Players {
+		if len(player.Path) == 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Race) PickPlayerForStartingPosition() string {
+	for _, player := range r.GetPlayersSorted() {
+		if len(player.Path) == 0 {
+			return player.Name
+		}
+	}
+	return ""
+}
+
+func (r *Race) GetStartingPositionOptions() map[Point]bool {
+	options := make(map[Point]bool)
+	allOptions := r.Track.GetStartingPositionOptions()
+
+	for _, option := range allOptions {
+		selectable := true
+		for _, player := range r.Players {
+			if len(player.Path) > 0 && player.Path[0] == option {
+				selectable = false
+				break
+			}
+		}
+		options[option] = selectable
+	}
+
+	return options
+}
+
+func (r *Race) UpdateStartingPosition(addr string, pos Point) {
+	if player, ok := r.Players[addr]; ok {
+		player.Path = append(player.Path, pos)
+		r.Players[addr] = player
+	}
 }
 
 // func (r *Race) Move(pos Point) {
@@ -107,14 +158,4 @@ func (r *Race) GetPlayersSorted() []types.Player {
 // 	}
 //
 // 	return -1
-// }
-
-// func (r *Race) GetStartingPosition() Point {
-// 	p1 := r.Track.Finish[0]
-// 	p2 := r.Track.Finish[1]
-//
-// 	midpointX := (p1.X + p2.X) / 2
-// 	midpointY := (p1.Y + p2.Y) / 2
-//
-// 	return Point{X: midpointX, Y: midpointY}
 // }

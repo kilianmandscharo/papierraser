@@ -5,14 +5,14 @@ import (
 	"strconv"
 
 	"github.com/a-h/templ"
-	"github.com/kilianmandscharo/papierraser/types"
+	"github.com/kilianmandscharo/papierraser/game"
 )
 
-func GetPathString(path types.Path) string {
+func GetPathString(path game.Path) string {
 	pathString := ""
 
 	for _, point := range path {
-		pathString += fmt.Sprintf(" %d,%d", point.X * 5, point.Y * 5)
+		pathString += fmt.Sprintf(" %d,%d", point.X*5, point.Y*5)
 	}
 
 	return pathString

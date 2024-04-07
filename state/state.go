@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/kilianmandscharo/papierraser/race"
+	"github.com/kilianmandscharo/papierraser/game"
 )
 
-type State = map[string]*race.Race
+type State = map[string]*game.Race
 
 type ActionRequest struct {
 	GameId     string
@@ -15,8 +15,8 @@ type ActionRequest struct {
 	RenderFunc RenderFunc
 }
 
-type UpdateFunc = func(*race.Race)
-type RenderFunc func(*race.Race, string) (string, []byte)
+type UpdateFunc = func(*game.Race)
+type RenderFunc func(*game.Race, string) (string, []byte)
 
 type MessagePayload struct {
 	Type string `json:"type"`
@@ -64,12 +64,14 @@ func Handler(ch <-chan ActionRequest) {
 		renderFunc := message.RenderFunc
 
 		if _, ok := state[gameId]; !ok {
-			state[gameId] = race.New()
+			state[gameId] = game.NewRace()
 			log.Printf("Created new race for %s\n", gameId)
 		}
 
-		log.Printf("updating %s\n", gameId)
-		updateFunc(state[gameId])
+		if updateFunc != nil {
+			log.Printf("updating %s\n", gameId)
+			updateFunc(state[gameId])
+		}
 
 		broadcast(state, gameId, renderFunc)
 	}

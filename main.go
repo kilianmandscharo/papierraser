@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/gorilla/websocket"
 	"github.com/kilianmandscharo/papierraser/components"
-	"github.com/kilianmandscharo/papierraser/race"
+	"github.com/kilianmandscharo/papierraser/game"
 	"github.com/kilianmandscharo/papierraser/state"
 )
 
@@ -44,7 +44,7 @@ func getGameId(r *http.Request) (string, bool) {
 	return queryStrings[0], true
 }
 
-func renderLobby(race *race.Race, target string) (string, []byte) {
+func renderLobby(race *game.Race, target string) (string, []byte) {
 	var buf bytes.Buffer
 	err := components.Lobby(race.GetPlayersSorted(), target).Render(
 		context.Background(),
@@ -55,6 +55,19 @@ func renderLobby(race *race.Race, target string) (string, []byte) {
 		return "", []byte{}
 	}
 	return "Lobby", buf.Bytes()
+}
+
+func renderTrack(race *game.Race, target string) (string, []byte) {
+	var buf bytes.Buffer
+	err := components.Track(race, target).Render(
+		context.Background(),
+		&buf,
+	)
+	if err != nil {
+		log.Println(err)
+		return "", []byte{}
+	}
+	return "Track", buf.Bytes()
 }
 
 type Message struct {
@@ -86,10 +99,13 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 		defer func() {
 			ch <- state.ActionRequest{
 				GameId: gameId,
-				UpdateFunc: func(race *race.Race) {
+				UpdateFunc: func(race *game.Race) {
 					race.DisconnectPlayer(addr)
 				},
-				RenderFunc: func(race *race.Race, target string) (string, []byte) {
+				RenderFunc: func(race *game.Race, target string) (string, []byte) {
+					if race.Started {
+						return renderTrack(race, target)
+					}
 					return renderLobby(race, target)
 				},
 			}
@@ -98,10 +114,13 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 
 		ch <- state.ActionRequest{
 			GameId: gameId,
-			UpdateFunc: func(race *race.Race) {
+			UpdateFunc: func(race *game.Race) {
 				race.ConnectPlayer(addr, conn)
 			},
-			RenderFunc: func(race *race.Race, target string) (string, []byte) {
+			RenderFunc: func(race *game.Race, target string) (string, []byte) {
+				if race.Started {
+					return renderTrack(race, target)
+				}
 				return renderLobby(race, target)
 			},
 		}
@@ -122,15 +141,35 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 			case "ActionNameChange":
 				ch <- state.ActionRequest{
 					GameId: gameId,
-					UpdateFunc: func(race *race.Race) {
+					UpdateFunc: func(race *game.Race) {
 						race.UpdatePlayerName(addr, message.Data.(string))
 					},
-					RenderFunc: func(race *race.Race, target string) (string, []byte) {
+					RenderFunc: func(race *game.Race, target string) (string, []byte) {
 						return renderLobby(race, target)
 					},
 				}
 			case "ActionStart":
-				log.Print("Start")
+				ch <- state.ActionRequest{
+					GameId: gameId,
+					UpdateFunc: func(race *game.Race) {
+						race.Start()
+					},
+					RenderFunc: func(race *game.Race, target string) (string, []byte) {
+						return renderTrack(race, target)
+					},
+				}
+			case "ActionChooseStartingPosition":
+				ch <- state.ActionRequest{
+					GameId: gameId,
+					UpdateFunc: func(race *game.Race) {
+						data := message.Data.(map[string]any)
+						point := game.Point{X: int(data["x"].(float64)), Y: int(data["y"].(float64))}
+						race.UpdateStartingPosition(addr, point)
+					},
+					RenderFunc: func(race *game.Race, target string) (string, []byte) {
+						return renderTrack(race, target)
+					},
+				}
 			default:
 				log.Printf("unknown message type '%s' provided by client\n", message.Type)
 			}

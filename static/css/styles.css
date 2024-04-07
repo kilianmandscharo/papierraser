@@ -26,13 +26,7 @@ input {
   background-color: #cbd5e1;
 }
 
-.player-option:hover {
-  fill: cyan;
-  transition: fill 150ms ease;
-  cursor: pointer;
-}
-
-.connections {
+.lobby {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -41,7 +35,7 @@ input {
   border-radius: 8px;
 }
 
-.connections-header {
+.lobby-header {
   display: flex;
   gap: 1rem;
   justify-content: space-between;
@@ -49,7 +43,13 @@ input {
   margin-bottom: 0.5rem;
 }
 
-.connections-header-control {
+.lobby h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.lobby-header-control {
   display: flex;
   gap: 1rem;
 }
@@ -59,10 +59,10 @@ input {
   gap: 1rem;
 }
 
-.connections h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+.connections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .connections .connection {
@@ -88,4 +88,17 @@ input {
   background-color: red;
   display: inline-block;
   margin-right: 0.5rem;
+}
+
+.track {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.player-option:hover,
+.starting-position-option:hover {
+  fill: cyan;
+  transition: fill 150ms ease;
+  cursor: pointer;
 }
