@@ -5,26 +5,27 @@ import "github.com/kilianmandscharo/papierraser/utils"
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
 
-templ Track(race *game.Race, target string) {
+templ Track(race *game.Race, target game.Player) {
 	<div class="track">
-		@Connections(race.GetPlayersSorted())
+		@Connections(race.GetPlayersSorted(), false)
 		if !race.StartingPositionsSet() {
-			<div>{ fmt.Sprintf("Spieler '%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition()) }</div>
+			<div>{ fmt.Sprintf("Spieler '%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition().Name) }</div>
 		}
 		<svg viewBox="0 0 100 100">
 			@Grid(race.Track)
 			@Line(race.Track.Finish[0], race.Track.Finish[1], "green")
 			@Path(race.Track.Inner, "black")
 			@Path(race.Track.Outer, "black")
-			//@Players(race.Players, race.Turn)
 			if !race.StartingPositionsSet() {
 				@StartingPositionOptions(race, target)
-			}
+			} else {
+        @Players(race, race.Turn, target)
+      }
 		</svg>
 	</div>
 }
 
-templ StartingPositionOptions(race *game.Race, target string) {
+templ StartingPositionOptions(race *game.Race, target game.Player) {
 	for option, selectable := range race.GetStartingPositionOptions() {
 		<circle
 			id={ fmt.Sprintf("option-%d,%d", option.X, option.Y) }
@@ -33,7 +34,7 @@ templ StartingPositionOptions(race *game.Race, target string) {
 			} else {
 				fill="red"
 			}
-      if selectable && target==race.PickPlayerForStartingPosition() {
+      if selectable && target.Id==race.PickPlayerForStartingPosition().Id {
         class="starting-position-option"
       }
 			cx={ strconv.Itoa(option.X * 5) }
@@ -43,13 +44,13 @@ templ StartingPositionOptions(race *game.Race, target string) {
 	}
 }
 
-templ Players(players game.Players, turn int) {
-	for _, player := range players {
-		@Player(player.Path[len(player.Path)-1], "orange")
-		if player.Id == turn {
-			@PlayerOptions(player.GetOptions())
-		}
-	}
+templ Players(race *game.Race, turn int, target game.Player) {
+  for _, player := range race.GetPlayersSorted() {
+    @Player(player.Path[len(player.Path)-1], "orange")
+    if player.Id == turn && player.Id == target.Id {
+      @PlayerOptions(race.GetPlayerOptions(player.Id))
+    }
+  }
 }
 
 templ Player(position game.Point, color string) {

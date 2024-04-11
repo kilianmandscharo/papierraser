@@ -70,6 +70,11 @@ input {
   align-items: center;
 }
 
+.connection-container {
+  display: flex;
+  gap: 1rem;
+}
+
 .connections .connected::before {
   content: "";
   width: 20px;

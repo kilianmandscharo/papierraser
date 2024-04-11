@@ -44,9 +44,9 @@ func getGameId(r *http.Request) (string, bool) {
 	return queryStrings[0], true
 }
 
-func renderLobby(race *game.Race, target string) (string, []byte) {
+func renderLobby(race *game.Race, target game.Player) (string, []byte) {
 	var buf bytes.Buffer
-	err := components.Lobby(race.GetPlayersSorted(), target).Render(
+	err := components.Lobby(race, target).Render(
 		context.Background(),
 		&buf,
 	)
@@ -57,7 +57,7 @@ func renderLobby(race *game.Race, target string) (string, []byte) {
 	return "Lobby", buf.Bytes()
 }
 
-func renderTrack(race *game.Race, target string) (string, []byte) {
+func renderTrack(race *game.Race, target game.Player) (string, []byte) {
 	var buf bytes.Buffer
 	err := components.Track(race, target).Render(
 		context.Background(),
@@ -102,7 +102,7 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 				UpdateFunc: func(race *game.Race) {
 					race.DisconnectPlayer(addr)
 				},
-				RenderFunc: func(race *game.Race, target string) (string, []byte) {
+				RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
 					if race.Started {
 						return renderTrack(race, target)
 					}
@@ -117,7 +117,7 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 			UpdateFunc: func(race *game.Race) {
 				race.ConnectPlayer(addr, conn)
 			},
-			RenderFunc: func(race *game.Race, target string) (string, []byte) {
+			RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
 				if race.Started {
 					return renderTrack(race, target)
 				}
@@ -144,18 +144,22 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 					UpdateFunc: func(race *game.Race) {
 						race.UpdatePlayerName(addr, message.Data.(string))
 					},
-					RenderFunc: func(race *game.Race, target string) (string, []byte) {
+					RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
 						return renderLobby(race, target)
 					},
 				}
-			case "ActionStart":
+			case "ActionToggleReady":
 				ch <- state.ActionRequest{
 					GameId: gameId,
 					UpdateFunc: func(race *game.Race) {
-						race.Start()
+						race.TogglePlayerReady(addr)
+						race.StartIfReady()
 					},
-					RenderFunc: func(race *game.Race, target string) (string, []byte) {
-						return renderTrack(race, target)
+					RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
+						if race.AllPlayersReady() {
+							return renderTrack(race, target)
+						}
+						return renderLobby(race, target)
 					},
 				}
 			case "ActionChooseStartingPosition":
@@ -166,7 +170,7 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 						point := game.Point{X: int(data["x"].(float64)), Y: int(data["y"].(float64))}
 						race.UpdateStartingPosition(addr, point)
 					},
-					RenderFunc: func(race *game.Race, target string) (string, []byte) {
+					RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
 						return renderTrack(race, target)
 					},
 				}

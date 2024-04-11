@@ -16,7 +16,7 @@ type ActionRequest struct {
 }
 
 type UpdateFunc = func(*game.Race)
-type RenderFunc func(*game.Race, string) (string, []byte)
+type RenderFunc func(*game.Race, game.Player) (string, []byte)
 
 type MessagePayload struct {
 	Type string `json:"type"`
@@ -39,7 +39,7 @@ func broadcast(state State, gameId string, renderFunc RenderFunc) {
 	if race, ok := state[gameId]; ok {
 		for addr, player := range race.Players {
 			if player.Conn != nil {
-				messageType, html := renderFunc(state[gameId], player.Name)
+				messageType, html := renderFunc(state[gameId], player)
 				payload, err := newPayload(messageType, html)
 				if err != nil {
 					log.Println("failed to create payload", err)

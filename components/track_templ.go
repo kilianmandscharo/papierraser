@@ -15,7 +15,7 @@ import "github.com/kilianmandscharo/papierraser/utils"
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
 
-func Track(race *game.Race, target string) templ.Component {
+func Track(race *game.Race, target game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -32,7 +32,7 @@ func Track(race *game.Race, target string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Connections(race.GetPlayersSorted()).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Connections(race.GetPlayersSorted(), false).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -42,9 +42,9 @@ func Track(race *game.Race, target string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Spieler '%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition()))
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Spieler '%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition().Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 12, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 12, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -80,6 +80,11 @@ func Track(race *game.Race, target string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+		} else {
+			templ_7745c5c3_Err = Players(race, race.Turn, target).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</svg></div>")
 		if templ_7745c5c3_Err != nil {
@@ -92,7 +97,7 @@ func Track(race *game.Race, target string) templ.Component {
 	})
 }
 
-func StartingPositionOptions(race *game.Race, target string) templ.Component {
+func StartingPositionOptions(race *game.Race, target game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -113,7 +118,7 @@ func StartingPositionOptions(race *game.Race, target string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("option-%d,%d", option.X, option.Y))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 30, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 31, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -134,7 +139,7 @@ func StartingPositionOptions(race *game.Race, target string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			if selectable && target == race.PickPlayerForStartingPosition() {
+			if selectable && target.Id == race.PickPlayerForStartingPosition().Id {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" class=\"starting-position-option\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -147,7 +152,7 @@ func StartingPositionOptions(race *game.Race, target string) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(option.X * 5))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 39, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 40, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -160,7 +165,7 @@ func StartingPositionOptions(race *game.Race, target string) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(option.Y * 5))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 40, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 41, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -178,7 +183,7 @@ func StartingPositionOptions(race *game.Race, target string) templ.Component {
 	})
 }
 
-func Players(players game.Players, turn int) templ.Component {
+func Players(race *game.Race, turn int, target game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -191,7 +196,7 @@ func Players(players game.Players, turn int) templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		for _, player := range players {
+		for _, player := range race.GetPlayersSorted() {
 			templ_7745c5c3_Err = Player(player.Path[len(player.Path)-1], "orange").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -200,8 +205,8 @@ func Players(players game.Players, turn int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if player.Id == turn {
-				templ_7745c5c3_Err = PlayerOptions(player.GetOptions()).Render(ctx, templ_7745c5c3_Buffer)
+			if player.Id == turn && player.Id == target.Id {
+				templ_7745c5c3_Err = PlayerOptions(race.GetPlayerOptions(player.Id)).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -234,7 +239,7 @@ func Player(position game.Point, color string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(color)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 56, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 57, Col: 21}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -247,7 +252,7 @@ func Player(position game.Point, color string) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(position.X * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 56, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 57, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -260,7 +265,7 @@ func Player(position game.Point, color string) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(position.Y * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 56, Col: 93}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 57, Col: 93}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -298,7 +303,7 @@ func PlayerOptions(options []game.Point) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("option-%d,%d", option.X, option.Y))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 62, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 63, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -311,7 +316,7 @@ func PlayerOptions(options []game.Point) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(option.X * 5))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 65, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 66, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -324,7 +329,7 @@ func PlayerOptions(options []game.Point) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(option.Y * 5))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 66, Col: 34}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 67, Col: 34}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -410,7 +415,7 @@ func Line(start, end game.Point, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(start.X * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 83, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 84, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -423,7 +428,7 @@ func Line(start, end game.Point, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(start.Y * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 84, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 85, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -436,7 +441,7 @@ func Line(start, end game.Point, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(end.X * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 85, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 86, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -449,7 +454,7 @@ func Line(start, end game.Point, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(end.Y * 5))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 86, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 87, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -486,7 +491,7 @@ func Path(path game.Path, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(utils.GetPathString(path))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 92, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 93, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -499,7 +504,7 @@ func Path(path game.Path, strokeColor string) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(strokeColor)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 92, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/track.templ`, Line: 93, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {

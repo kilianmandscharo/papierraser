@@ -9,10 +9,11 @@ import (
 type Players = map[string]Player
 
 type Player struct {
-	Id   int
-	Name string
-	Path Path
-	Conn *websocket.Conn
+	Id    int
+	Name  string
+	Path  Path
+	Conn  *websocket.Conn
+	Ready bool
 }
 
 type Velocity struct {
@@ -43,9 +44,7 @@ func (p *Player) GetOptions() []Point {
 		for j := -1; j <= 1; j++ {
 			optionX := newPos.X + i
 			optionY := newPos.Y + j
-			if !(optionX == pos.X && optionY == pos.Y) {
-				options = append(options, Point{X: optionX, Y: optionY})
-			}
+			options = append(options, Point{X: optionX, Y: optionY})
 		}
 	}
 
@@ -66,4 +65,3 @@ func (p *Player) GetVelocity() Velocity {
 func (p *Player) Move(pos Point) {
 	p.Path = append(p.Path, pos)
 }
-

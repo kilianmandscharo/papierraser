@@ -12,7 +12,7 @@ import "bytes"
 
 import "github.com/kilianmandscharo/papierraser/game"
 
-func Lobby(players []game.Player, target string) templ.Component {
+func Lobby(race *game.Race, target game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -30,19 +30,34 @@ func Lobby(players []game.Player, target string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("Lobby - " + target)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("Lobby - " + target.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 6, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 6, Col: 31}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h1><div class=\"lobby\"><div class=\"lobby-header\"><h2>Spieler</h2><div class=\"lobby-header-control\"><div class=\"change-name\"><input id=\"change-name-input\" type=\"text\" placeholder=\"Name\"> <button id=\"change-name-button\">Namen ändern</button></div><div class=\"divider\"></div><button id=\"invite-button\">Einladungslink kopieren</button><div class=\"divider\"></div><button id=\"start-button\">Spiel starten</button></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h1><div class=\"lobby\"><div class=\"lobby-header\"><h2>Spieler</h2><div class=\"lobby-header-control\"><div class=\"change-name\"><input id=\"change-name-input\" type=\"text\" placeholder=\"Name\"> <button id=\"change-name-button\">Namen ändern</button></div><div class=\"divider\"></div><button id=\"invite-button\">Einladungslink kopieren</button><div class=\"divider\"></div><button id=\"start-button\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Connections(players).Render(ctx, templ_7745c5c3_Buffer)
+		if target.Ready {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Nicht bereit")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Bereit")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</button></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = Connections(race.GetPlayersSorted(), true).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -57,7 +72,7 @@ func Lobby(players []game.Player, target string) templ.Component {
 	})
 }
 
-func Connections(players []game.Player) templ.Component {
+func Connections(players []game.Player, showReady bool) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -75,6 +90,10 @@ func Connections(players []game.Player) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, player := range players {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"connection-container\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			if player.Conn == nil {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"connection disconnected\">")
 				if templ_7745c5c3_Err != nil {
@@ -83,7 +102,7 @@ func Connections(players []game.Player) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 29, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 36, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -101,7 +120,7 @@ func Connections(players []game.Player) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 31, Col: 51}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/lobby.templ`, Line: 38, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -111,6 +130,31 @@ func Connections(players []game.Player) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
+			}
+			if showReady {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				if player.Ready {
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Bereit")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				} else {
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Warten...")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")

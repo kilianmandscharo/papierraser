@@ -87,7 +87,7 @@ function handleLobbyUpdate(contentContainer, html, gameId, socket) {
   const startButton = document.getElementById("start-button");
   if (startButton) {
     startButton.addEventListener("click", () => {
-      const payload = newPayload("ActionStart", "");
+      const payload = newPayload("ActionToggleReady", "");
       socket.send(JSON.stringify(payload));
     });
   }

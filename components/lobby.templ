@@ -2,8 +2,8 @@ package components
 
 import "github.com/kilianmandscharo/papierraser/game"
 
-templ Lobby(players []game.Player, target string) {
-	<h1>{ "Lobby - " + target }</h1>
+templ Lobby(race *game.Race, target game.Player) {
+	<h1>{ "Lobby - " + target.Name }</h1>
 	<div class="lobby">
 		<div class="lobby-header">
 			<h2>Spieler</h2>
@@ -15,21 +15,38 @@ templ Lobby(players []game.Player, target string) {
 				<div class="divider"></div>
 				<button id="invite-button">Einladungslink kopieren</button>
 				<div class="divider"></div>
-				<button id="start-button">Spiel starten</button>
+				<button id="start-button">
+					if target.Ready {
+						Nicht bereit
+					} else {
+						Bereit
+					}
+				</button>
 			</div>
 		</div>
-		@Connections(players)
+		@Connections(race.GetPlayersSorted(), true)
 	</div>
 }
 
-templ Connections(players []game.Player) {
+templ Connections(players []game.Player, showReady bool) {
 	<div class="connections">
 		for _, player := range players {
-			if player.Conn == nil {
-				<div class="connection disconnected">{ player.Name }</div>
-			} else {
-				<div class="connection connected">{ player.Name }</div>
-			}
+			<div class="connection-container">
+				if player.Conn == nil {
+					<div class="connection disconnected">{ player.Name }</div>
+				} else {
+					<div class="connection connected">{ player.Name }</div>
+				}
+				if showReady {
+					<div>
+						if player.Ready {
+							Bereit
+						} else {
+							Warten...
+						}
+					</div>
+				}
+			</div>
 		}
 	</div>
 }

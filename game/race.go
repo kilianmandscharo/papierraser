@@ -61,8 +61,27 @@ func (r *Race) UpdatePlayerName(addr string, name string) {
 	}
 }
 
-func (r *Race) Start() {
-	r.Started = true
+func (r *Race) AllPlayersReady() bool {
+	for _, player := range r.Players {
+		if !player.Ready {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Race) StartIfReady() {
+	if r.AllPlayersReady() {
+		r.Started = true
+		r.Turn = 1
+	}
+}
+
+func (r *Race) PlayerReady(addr string) bool {
+	if player, ok := r.Players[addr]; ok {
+		return player.Ready
+	}
+	return false
 }
 
 func (r *Race) End() {
@@ -83,6 +102,13 @@ func (r *Race) nextId() int {
 	}
 
 	return id + 1
+}
+
+func (r *Race) TogglePlayerReady(addr string) {
+	if player, ok := r.Players[addr]; ok {
+		player.Ready = !player.Ready
+		r.Players[addr] = player
+	}
 }
 
 func (r *Race) GetPlayersSorted() []Player {
@@ -110,13 +136,49 @@ func (r *Race) StartingPositionsSet() bool {
 	return true
 }
 
-func (r *Race) PickPlayerForStartingPosition() string {
+func (r *Race) PickPlayerForStartingPosition() *Player {
 	for _, player := range r.GetPlayersSorted() {
 		if len(player.Path) == 0 {
-			return player.Name
+			return &player
 		}
 	}
-	return ""
+	return nil
+}
+
+func (r *Race) GetPlayerById(id int) *Player {
+	for _, player := range r.Players {
+		if player.Id == id {
+			return &player
+		}
+	}
+	return nil
+}
+
+func (r *Race) SomePlayerHasPosition(pos Point) bool {
+	for _, player := range r.Players {
+		if player.GetPosition() == pos {
+			return true
+		}
+	}
+	return false
+}
+
+func (r *Race) GetPlayerOptions(id int) []Point {
+	player := r.GetPlayerById(id)
+	if player == nil {
+		return []Point{}
+	}
+
+	options := player.GetOptions()
+	filteredOptions := []Point{}
+
+	for _, option := range options {
+		if !r.SomePlayerHasPosition(option) {
+			filteredOptions = append(filteredOptions, option)
+		}
+	}
+
+	return filteredOptions
 }
 
 func (r *Race) GetStartingPositionOptions() map[Point]bool {
