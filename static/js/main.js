@@ -41,6 +41,7 @@ function handleTrackUpdate(contentContainer, html, socket) {
     "ActionChooseStartingPosition",
     socket,
   );
+  connectOptions(".player-option", "ActionMakeMove", socket);
 }
 
 function connectOptions(className, actionType, socket) {
@@ -48,10 +49,7 @@ function connectOptions(className, actionType, socket) {
     const [_, rest] = option.id.split("-");
     const [x, y] = rest.split(",");
     option.addEventListener("click", () => {
-      console.log("click");
-      console.log(option.className, socket);
       if (socket && option.className.baseVal.length > 0) {
-        console.log("inside");
         const payload = newPayload(actionType, {
           x: parseInt(x),
           y: parseInt(y),

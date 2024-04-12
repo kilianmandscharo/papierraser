@@ -1,0 +1,27 @@
+package components
+
+import "fmt"
+import "github.com/kilianmandscharo/papierraser/game"
+
+templ Race(race *game.Race, target game.Player) {
+	<div class="track">
+		@Connections(race.GetPlayersSorted(), false)
+		if !race.StartingPositionsSet() {
+			<div>{ fmt.Sprintf("'%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition().Name) }</div>
+		} else {
+			<div>{ fmt.Sprintf("'%s', du bist am Zug", race.CurrentPlayer().Name) }</div>
+		}
+		<svg viewBox="0 0 100 100">
+			@Grid(race.Track)
+			@Path(race.Track.Inner, "black")
+			@Path(race.Track.Outer, "black")
+			@PlayerPaths(race)
+			@Line(race.Track.Finish[0], race.Track.Finish[1], "green")
+			if !race.StartingPositionsSet() {
+				@StartingPositionOptions(race, target)
+			} else {
+				@Players(race, race.Turn, target)
+			}
+		</svg>
+	</div>
+}

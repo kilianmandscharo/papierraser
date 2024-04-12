@@ -2,6 +2,10 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -9,11 +13,13 @@ import (
 type Players = map[string]Player
 
 type Player struct {
-	Id    int
-	Name  string
-	Path  Path
-	Conn  *websocket.Conn
-	Ready bool
+	Id      int
+	Name    string
+	Path    Path
+	Conn    *websocket.Conn
+	Ready   bool
+	Crashed bool
+	Color   string
 }
 
 type Velocity struct {
@@ -22,9 +28,10 @@ type Velocity struct {
 
 func NewPlayer(id int, conn *websocket.Conn) Player {
 	return Player{
-		Id:   id,
-		Conn: conn,
-		Name: fmt.Sprintf("Spieler %d", id),
+		Id:    id,
+		Conn:  conn,
+		Name:  fmt.Sprintf("Spieler %d", id),
+		Color: randomColorHex(),
 	}
 }
 
@@ -64,4 +71,30 @@ func (p *Player) GetVelocity() Velocity {
 
 func (p *Player) Move(pos Point) {
 	p.Path = append(p.Path, pos)
+}
+
+func randomColorHex() string {
+	generator := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	red := generator.Intn(256)
+	green := generator.Intn(256)
+	blue := generator.Intn(256)
+
+	redHex := strconv.FormatInt(int64(red), 16)
+	greenHex := strconv.FormatInt(int64(green), 16)
+	blueHex := strconv.FormatInt(int64(blue), 16)
+
+	if len(redHex) == 1 {
+		redHex = "0" + redHex
+	}
+	if len(greenHex) == 1 {
+		greenHex = "0" + greenHex
+	}
+	if len(blueHex) == 1 {
+		blueHex = "0" + blueHex
+	}
+
+	colorHex := strings.ToUpper("#" + redHex + greenHex + blueHex)
+
+	return colorHex
 }

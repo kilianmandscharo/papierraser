@@ -17,20 +17,6 @@ type Race struct {
 	Winner   int
 }
 
-var track = Track{
-	Width:  20,
-	Height: 10,
-	Outer: []Point{
-		{X: 0, Y: 0}, {X: 20, Y: 0}, {X: 20, Y: 10}, {X: 0, Y: 10},
-	},
-	Inner: []Point{
-		{X: 4, Y: 3}, {X: 16, Y: 3}, {X: 16, Y: 7}, {X: 4, Y: 7},
-	},
-	Finish: [2]Point{
-		{X: 0, Y: 5}, {X: 4, Y: 5},
-	},
-}
-
 func NewRace() *Race {
 	return &Race{Track: track, Players: make(Players)}
 }
@@ -206,18 +192,89 @@ func (r *Race) UpdateStartingPosition(addr string, pos Point) {
 	}
 }
 
-// func (r *Race) Move(pos Point) {
-// 	if index := r.currentPlayer(); index > -1 {
-// 		r.Players[index].Move(pos)
-// 	}
-// }
-//
-// func (r *Race) currentPlayer() int {
-// 	for index, player := range r.Players {
-// 		if player.Id == r.Turn {
-// 			return index
-// 		}
-// 	}
-//
-// 	return -1
-// }
+func (r *Race) GetPlayerKeyById(id int) (string, bool) {
+	for key, player := range r.Players {
+		if id == player.Id {
+			return key, true
+		}
+	}
+	return "", false
+}
+
+func (r *Race) MakeMove(pos Point) {
+	if key, ok := r.GetPlayerKeyById(r.Turn); ok {
+		if player, ok := r.Players[key]; ok {
+			pathTaken := Line{from: player.GetPosition(), to: pos}
+
+			point, isIntersection := r.Track.lineIntersectsTrack(pathTaken)
+
+			if isIntersection && point != player.GetPosition() {
+				player.Move(point)
+				player.Move(point)
+				player.Crashed = true
+			} else if track.pointOnTrackLines(pos) ||
+				!r.Track.pointInsideTrack(pos) {
+				player.Move(player.GetPosition())
+				player.Crashed = true
+			} else {
+				player.Move(pos)
+			}
+			r.Players[key] = player
+			r.SetNextTurn()
+		}
+	}
+}
+
+func (r *Race) CurrentPlayer() *Player {
+	return r.GetPlayerById(r.Turn)
+}
+
+func (r *Race) TogglePlayerCrashed(id int) {
+	if key, ok := r.GetPlayerKeyById(id); ok {
+		if player, ok := r.Players[key]; ok {
+			player.Crashed = !player.Crashed
+			r.Players[key] = player
+		}
+	}
+}
+
+func (r *Race) AllPlayersCrashed() bool {
+	for _, player := range r.Players {
+		if !player.Crashed {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Race) UncrashAllPlayers() {
+	for key, player := range r.Players {
+		player.Crashed = false
+		r.Players[key] = player
+	}
+}
+
+func (r *Race) SetNextTurn() {
+	for {
+		var nextTurn int
+		if r.Turn+1 > len(r.Players) {
+			nextTurn = 1
+		} else {
+			nextTurn = r.Turn + 1
+		}
+		if player := r.GetPlayerById(nextTurn); player != nil {
+			if player.Crashed {
+				allCrashed := r.AllPlayersCrashed()
+				r.TogglePlayerCrashed(player.Id)
+				r.Turn = nextTurn
+				if allCrashed {
+					r.UncrashAllPlayers()
+					break
+				}
+			} else {
+				r.Turn = nextTurn
+				break
+			}
+		}
+	}
+}

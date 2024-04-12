@@ -1,0 +1,32 @@
+package components
+
+import "github.com/kilianmandscharo/papierraser/game"
+import "github.com/kilianmandscharo/papierraser/utils"
+import "strconv"
+
+templ Grid(track game.Track) {
+	for x := range track.Width {
+		<line { utils.GetVerticalLineAttrs(x, track.Height)... } stroke="lightgray"></line>
+	}
+	for y := range track.Height {
+		<line { utils.GetHorizontalLineAttrs(y, track.Width)... } stroke="lightgray"></line>
+	}
+}
+
+templ Line(start, end game.Point, strokeColor string) {
+	<line
+		x1={ strconv.Itoa(start.X * 5) }
+		y1={ strconv.Itoa(start.Y * 5) }
+		x2={ strconv.Itoa(end.X * 5) }
+		y2={ strconv.Itoa(end.Y * 5) }
+		stroke="green"
+	></line>
+}
+
+templ Path(path game.Path, strokeColor string) {
+	<polygon points={ utils.GetPathString(path) } fill="none" stroke={ strokeColor }></polygon>
+}
+
+templ PolyLine(path game.Path, strokeColor string) {
+	<polyline points={ utils.GetPathString(path) } fill="none" stroke={ strokeColor }></polyline>
+}

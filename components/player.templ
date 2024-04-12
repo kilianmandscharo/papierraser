@@ -1,0 +1,60 @@
+package components
+
+import "strconv"
+import "fmt"
+import "github.com/kilianmandscharo/papierraser/game"
+
+templ StartingPositionOptions(race *game.Race, target game.Player) {
+	for option, selectable := range race.GetStartingPositionOptions() {
+		<circle
+			id={ fmt.Sprintf("option-%d,%d", option.X, option.Y) }
+			if selectable {
+				fill="blue"
+			} else {
+				fill="red"
+			}
+      if selectable && target.Id==race.PickPlayerForStartingPosition().Id {
+        class="starting-position-option"
+      }
+			cx={ strconv.Itoa(option.X * 5) }
+			cy={ strconv.Itoa(option.Y * 5) }
+			r="2"
+		></circle>
+	}
+}
+
+templ Players(race *game.Race, turn int, target game.Player) {
+  for _, player := range race.GetPlayersSorted() {
+    if player.Crashed {
+      @Player(player.Path[len(player.Path)-1], "red")
+    } else {
+      @Player(player.Path[len(player.Path)-1], player.Color)
+    }
+    if player.Id == turn && player.Id == target.Id {
+      @PlayerOptions(race.GetPlayerOptions(player.Id))
+    }
+  }
+}
+
+templ PlayerPaths(race *game.Race) {
+  for _, player := range race.Players {
+    @PolyLine(player.Path, player.Color)
+  }
+}
+
+templ Player(position game.Point, color string) {
+	<circle fill={ color } cx={ strconv.Itoa(position.X * 5) } cy={ strconv.Itoa(position.Y * 5) } r="2"></circle>
+}
+
+templ PlayerOptions(options []game.Point) {
+	for _, option := range options {
+		<circle
+			id={ fmt.Sprintf("option-%d,%d", option.X, option.Y) }
+			class="player-option"
+			fill="purple"
+			cx={ strconv.Itoa(option.X * 5) }
+			cy={ strconv.Itoa(option.Y * 5) }
+			r="2"
+		></circle>
+	}
+}

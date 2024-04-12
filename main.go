@@ -59,7 +59,7 @@ func renderLobby(race *game.Race, target game.Player) (string, []byte) {
 
 func renderTrack(race *game.Race, target game.Player) (string, []byte) {
 	var buf bytes.Buffer
-	err := components.Track(race, target).Render(
+	err := components.Race(race, target).Render(
 		context.Background(),
 		&buf,
 	)
@@ -167,8 +167,20 @@ func websocketHandler(ch chan<- state.ActionRequest) http.HandlerFunc {
 					GameId: gameId,
 					UpdateFunc: func(race *game.Race) {
 						data := message.Data.(map[string]any)
-						point := game.Point{X: int(data["x"].(float64)), Y: int(data["y"].(float64))}
+						point := game.CastPoint(data)
 						race.UpdateStartingPosition(addr, point)
+					},
+					RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
+						return renderTrack(race, target)
+					},
+				}
+			case "ActionMakeMove":
+				ch <- state.ActionRequest{
+					GameId: gameId,
+					UpdateFunc: func(race *game.Race) {
+						data := message.Data.(map[string]any)
+						point := game.CastPoint(data)
+						race.MakeMove(point)
 					},
 					RenderFunc: func(race *game.Race, target game.Player) (string, []byte) {
 						return renderTrack(race, target)
