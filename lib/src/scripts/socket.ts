@@ -1,6 +1,7 @@
-enum PayloadType {
+enum ReceiveAction {
   Lobby = "Lobby",
   Track = "Track",
+  Move = "Move",
 }
 
 enum SendAction {
@@ -8,6 +9,7 @@ enum SendAction {
   ToggleReady = "ActionToggleReady",
   ChooseStartingPosition = "ActionChooseStartingPosition",
   MakeMove = "ActionMakeMove",
+  MoveAnimationDone = "ActionMoveAnimationDone",
 }
 
 export function initSocket(
@@ -37,16 +39,70 @@ export function initSocket(
     }
 
     switch (payload.type) {
-      case PayloadType.Lobby:
+      case ReceiveAction.Lobby:
         handleLobbyUpdate(contentContainer, payload.data, gameId, socket);
         break;
-      case PayloadType.Track:
+      case ReceiveAction.Track:
         handleTrackUpdate(contentContainer, payload.data, socket);
+        break;
+      case ReceiveAction.Move:
+        handleMove(JSON.parse(payload.data), socket);
         break;
       default:
         break;
     }
   });
+}
+
+function handleMove(
+  data: { point: { x: number; y: number }; playerId: number },
+  socket: WebSocket,
+) {
+  document.querySelectorAll(".player-option")?.forEach((opt) => {
+    opt.remove();
+  });
+
+  const { point, playerId } = data;
+
+  const player = document.getElementById(
+    `player-${playerId}`,
+  ) as SVGCircleElement | null;
+
+  if (!player) {
+    return;
+  }
+
+  animatePlayerToPosition(player, point.x * 5, point.y * 5, 500, () => {
+    socket.send(newPayload(SendAction.MoveAnimationDone));
+  });
+}
+
+function animatePlayerToPosition(
+  player: SVGCircleElement,
+  newX: number,
+  newY: number,
+  duration: number,
+  callback: () => void,
+) {
+  const start = performance.now();
+  const startX = parseFloat(player.getAttribute("cx") || "0");
+  const startY = parseFloat(player.getAttribute("cy") || "0");
+
+  function step(timestamp: number) {
+    const progress = Math.min((timestamp - start) / duration, 1);
+    const x = startX + (newX - startX) * progress;
+    const y = startY + (newY - startY) * progress;
+    player.setAttribute("cx", x.toString());
+    player.setAttribute("cy", y.toString());
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      callback();
+    }
+  }
+
+  requestAnimationFrame(step);
 }
 
 function handleTrackUpdate(
@@ -106,11 +162,12 @@ function connectOptions(
   actionType: SendAction,
   socket: WebSocket,
 ) {
-  document.querySelectorAll(className)?.forEach((option) => {
+  document.querySelectorAll(className)?.forEach((opt) => {
+    const option = opt as SVGCircleElement;
     const [_, rest] = option.id.split("-");
     const [x, y] = rest.split(",");
     option.addEventListener("click", () => {
-      if (socket && option.className.length > 0) {
+      if (socket && option.classList.length > 0) {
         const payload = newPayload(actionType, {
           x: parseInt(x),
           y: parseInt(y),

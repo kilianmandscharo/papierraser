@@ -47,6 +47,7 @@ func (l *Line) intersects(other Line) (Point, bool) {
 	return Point{}, false
 }
 
-func CastPoint(data map[string]any) Point {
-	return Point{X: int(data["x"].(float64)), Y: int(data["y"].(float64))}
+func CastPoint(data any) Point {
+	dataMap := data.(map[string]any)
+	return Point{X: int(dataMap["x"].(float64)), Y: int(dataMap["y"].(float64))}
 }

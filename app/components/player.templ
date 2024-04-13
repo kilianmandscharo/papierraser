@@ -26,9 +26,9 @@ templ StartingPositionOptions(race *game.Race, target *game.Player) {
 templ Players(race *game.Race, turn int, target *game.Player) {
   for _, player := range race.Players {
     if player.Crashed {
-      @Player(player.Path[len(player.Path)-1], "red")
+      @Player(player.Id, player.Path[len(player.Path)-1], "red")
     } else {
-      @Player(player.Path[len(player.Path)-1], player.Color)
+      @Player(player.Id, player.Path[len(player.Path)-1], player.Color)
     }
     if player.Id == turn && player.Id == target.Id {
       @PlayerOptions(race.GetPlayerOptions(player.Id))
@@ -42,8 +42,8 @@ templ PlayerPaths(race *game.Race) {
   }
 }
 
-templ Player(position game.Point, color string) {
-	<circle fill={ color } cx={ strconv.Itoa(position.X * 5) } cy={ strconv.Itoa(position.Y * 5) } r="2"></circle>
+templ Player(id int, position game.Point, color string) {
+	<circle id={ fmt.Sprintf("player-%d", id) } fill={ color } cx={ strconv.Itoa(position.X * 5) } cy={ strconv.Itoa(position.Y * 5) } r="2"></circle>
 }
 
 templ PlayerOptions(options []game.Point) {

@@ -179,25 +179,35 @@ func (r *Race) UpdateStartingPosition(addr string, pos Point) {
 	}
 }
 
-func (r *Race) MakeMove(pos Point) {
-	if player := r.CurrentPlayer(); player != nil {
-		pathTaken := Line{from: player.GetPosition(), to: pos}
-
-		point, isIntersection := r.Track.lineIntersectsTrack(pathTaken)
-
-		if isIntersection && point != player.GetPosition() {
-			player.Move(point)
-			player.Move(point)
-			player.Crashed = true
-		} else if track.pointOnTrackLines(pos) ||
-			!r.Track.pointInsideTrack(pos) {
-			player.Move(player.GetPosition())
-			player.Crashed = true
-		} else {
-			player.Move(pos)
-		}
-		r.SetNextTurn()
+func (r *Race) MakeMove(targetPosition Point) (Point, bool) {
+	player := r.CurrentPlayer()
+	if player == nil {
+		return Point{}, false
 	}
+
+	defer r.SetNextTurn()
+
+	playerPosition := player.GetPosition()
+	pathTaken := Line{from: playerPosition, to: targetPosition}
+
+	intersectionPoint, hasIntersection := r.Track.lineIntersectsTrack(pathTaken)
+
+	if hasIntersection && intersectionPoint != playerPosition {
+		player.Move(intersectionPoint) // add point twice to reset velocity
+		player.Move(intersectionPoint)
+		player.Crashed = true
+		return intersectionPoint, true
+	}
+
+	if track.pointOnTrackLines(targetPosition) || !r.Track.pointInsideTrack(targetPosition) {
+		player.Move(playerPosition) // add same point to reset velocity
+		player.Crashed = true
+		return Point{}, false
+	}
+
+	player.Move(targetPosition)
+	return targetPosition, true
+
 }
 
 func (r *Race) CurrentPlayer() *Player {

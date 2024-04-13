@@ -15,16 +15,16 @@ type ActionRequest struct {
 	RenderFunc RenderFunc
 }
 
-type UpdateFunc = func(*game.Race)
-type RenderFunc func(*game.Race, *game.Player) (string, []byte)
+type UpdateFunc = func(*game.Race) RenderFunc
+type RenderFunc func(*game.Player) (string, []byte)
 
-type MessagePayload struct {
+type MessageSend struct {
 	Type string `json:"type"`
 	Data string `json:"data"`
 }
 
 func newPayload(messageType string, data []byte) ([]byte, error) {
-	return json.Marshal(MessagePayload{
+	return json.Marshal(MessageSend{
 		Type: messageType,
 		Data: string(data),
 	})
@@ -35,44 +35,46 @@ func newState() State {
 	return state
 }
 
-func broadcast(state State, gameId string, renderFunc RenderFunc) {
-	if race, ok := state[gameId]; ok {
-		for _, player := range race.Players {
-			if player.Conn != nil {
-				messageType, html := renderFunc(state[gameId], player)
-				payload, err := newPayload(messageType, html)
-				if err != nil {
-					log.Println("failed to create payload", err)
-					return
-				}
-				err = player.Conn.WriteMessage(1, payload)
-				if err != nil {
-					log.Printf("failed to write message to %s\n", player.Addr)
-					return
-				}
-			}
-		}
-	}
-}
-
 func Handler(ch <-chan ActionRequest) {
 	state := newState()
 
 	for message := range ch {
-		gameId := message.GameId
-		updateFunc := message.UpdateFunc
-		renderFunc := message.RenderFunc
+		var race *game.Race
 
-		if _, ok := state[gameId]; !ok {
-			state[gameId] = game.NewRace()
-			log.Printf("Created new race for %s\n", gameId)
+		if r, ok := state[message.GameId]; !ok {
+			newRace := game.NewRace()
+			state[message.GameId] = newRace
+			race = newRace
+			log.Printf("created new race for %s\n", message.GameId)
+		} else {
+			race = r
 		}
 
-		if updateFunc != nil {
-			log.Printf("updating %s\n", gameId)
-			updateFunc(state[gameId])
+		var renderFunc RenderFunc
+
+		if message.UpdateFunc != nil {
+			log.Printf("updating %s\n", message.GameId)
+			renderFunc = message.UpdateFunc(race)
 		}
 
-		broadcast(state, gameId, renderFunc)
+		for _, player := range race.Players {
+			if player.Conn == nil {
+				continue
+			}
+
+			messageType, html := renderFunc(player)
+
+			payload, err := newPayload(messageType, html)
+			if err != nil {
+				log.Println("failed to create payload:", err)
+				return
+			}
+
+			err = player.Conn.WriteMessage(1, payload)
+			if err != nil {
+				log.Printf("failed to write message to %s\n", player.Name)
+				return
+			}
+		}
 	}
 }
