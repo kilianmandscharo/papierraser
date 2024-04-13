@@ -14,7 +14,7 @@ import "strconv"
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
 
-func StartingPositionOptions(race *game.Race, target game.Player) templ.Component {
+func StartingPositionOptions(race *game.Race, target *game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -100,7 +100,7 @@ func StartingPositionOptions(race *game.Race, target game.Player) templ.Componen
 	})
 }
 
-func Players(race *game.Race, turn int, target game.Player) templ.Component {
+func Players(race *game.Race, turn int, target *game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -113,7 +113,7 @@ func Players(race *game.Race, turn int, target game.Player) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		for _, player := range race.GetPlayersSorted() {
+		for _, player := range race.Players {
 			if player.Crashed {
 				templ_7745c5c3_Err = Player(player.Path[len(player.Path)-1], "red").Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {

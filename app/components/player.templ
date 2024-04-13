@@ -4,7 +4,7 @@ import "strconv"
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
 
-templ StartingPositionOptions(race *game.Race, target game.Player) {
+templ StartingPositionOptions(race *game.Race, target *game.Player) {
 	for option, selectable := range race.GetStartingPositionOptions() {
 		<circle
 			id={ fmt.Sprintf("option-%d,%d", option.X, option.Y) }
@@ -23,8 +23,8 @@ templ StartingPositionOptions(race *game.Race, target game.Player) {
 	}
 }
 
-templ Players(race *game.Race, turn int, target game.Player) {
-  for _, player := range race.GetPlayersSorted() {
+templ Players(race *game.Race, turn int, target *game.Player) {
+  for _, player := range race.Players {
     if player.Crashed {
       @Player(player.Path[len(player.Path)-1], "red")
     } else {

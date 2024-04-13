@@ -10,12 +10,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type Players = map[string]Player
-
 type Player struct {
 	Id      int
 	Name    string
 	Path    Path
+	Addr    string
 	Conn    *websocket.Conn
 	Ready   bool
 	Crashed bool
@@ -26,10 +25,11 @@ type Velocity struct {
 	X, Y int
 }
 
-func NewPlayer(id int, conn *websocket.Conn) Player {
+func NewPlayer(id int, conn *websocket.Conn, addr string) Player {
 	return Player{
 		Id:    id,
 		Conn:  conn,
+		Addr:  addr,
 		Name:  fmt.Sprintf("Spieler %d", id),
 		Color: randomColorHex(),
 	}

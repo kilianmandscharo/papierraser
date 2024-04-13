@@ -3,9 +3,9 @@ package components
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
 
-templ Race(race *game.Race, target game.Player) {
+templ Race(race *game.Race, target *game.Player) {
 	<div class="track">
-		@Connections(race.GetPlayersSorted(), false)
+		@Connections(race.Players, false)
 		if !race.StartingPositionsSet() {
 			<div>{ fmt.Sprintf("'%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition().Name) }</div>
 		} else {

@@ -2,7 +2,7 @@ package components
 
 import "github.com/kilianmandscharo/papierraser/game"
 
-templ Lobby(race *game.Race, target game.Player) {
+templ Lobby(race *game.Race, target *game.Player) {
 	<h1>{ "Lobby - " + target.Name }</h1>
 	<div class="lobby">
 		<div class="lobby-header">
@@ -24,11 +24,11 @@ templ Lobby(race *game.Race, target game.Player) {
 				</button>
 			</div>
 		</div>
-		@Connections(race.GetPlayersSorted(), true)
+		@Connections(race.Players, true)
 	</div>
 }
 
-templ Connections(players []game.Player, showReady bool) {
+templ Connections(players []*game.Player, showReady bool) {
 	<div class="connections">
 		for _, player := range players {
 			<div class="connection-container">

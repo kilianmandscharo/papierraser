@@ -12,7 +12,7 @@ import "bytes"
 
 import "github.com/kilianmandscharo/papierraser/game"
 
-func Lobby(race *game.Race, target game.Player) templ.Component {
+func Lobby(race *game.Race, target *game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -57,7 +57,7 @@ func Lobby(race *game.Race, target game.Player) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Connections(race.GetPlayersSorted(), true).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Connections(race.Players, true).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func Lobby(race *game.Race, target game.Player) templ.Component {
 	})
 }
 
-func Connections(players []game.Player, showReady bool) templ.Component {
+func Connections(players []*game.Player, showReady bool) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {

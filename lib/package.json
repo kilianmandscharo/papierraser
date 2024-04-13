@@ -1,0 +1,20 @@
+{
+  "name": "lib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/scripts/main.ts",
+  "scripts": {
+    "bundle": "esbuild ./src/scripts/main.ts --bundle --minify --outfile=build/main.js",
+    "clean": "rm ../app/static/js/main.js 2>/dev/null || true",
+    "copy": "cp ./build/main.js ../app/static/js/main.js",
+    "build": "run-s bundle clean copy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "0.20.2",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.4.5"
+  }
+}
