@@ -2,7 +2,6 @@ package socket
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -56,16 +55,15 @@ func Handler(routineChan routine.ChannelSend) http.HandlerFunc {
 			}
 
 			switch message.Type {
-			case "ActionNameChange":
+			case "ServerActionNameChange":
 				handleReceiveActionNameChange(stateChan, gameId, addr, message)
-			case "ActionToggleReady":
+			case "ServerActionToggleReady":
 				handleReceiveActionToggleReady(stateChan, gameId, addr)
-			case "ActionChooseStartingPosition":
+			case "ServerActionChooseStartingPosition":
 				handleReceiveActionChooseStartingPosition(stateChan, gameId, addr, message)
-			case "ActionMakeMove":
+			case "ServerActionMakeMove":
 				handleReceiveActionMakeMove(stateChan, gameId, message)
-			case "ActionMoveAnimationDone":
-				fmt.Println("move animation done")
+			case "ServerActionMoveAnimationDone":
 				handleReceiveActionMoveAnimationDone(stateChan, gameId)
 			default:
 				log.Printf("unknown message type '%s' provided by client\n", message.Type)

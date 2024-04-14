@@ -1,16 +1,4 @@
-enum ReceiveAction {
-  Lobby = "Lobby",
-  Track = "Track",
-  Move = "Move",
-}
-
-enum SendAction {
-  NameChange = "ActionNameChange",
-  ToggleReady = "ActionToggleReady",
-  ChooseStartingPosition = "ActionChooseStartingPosition",
-  MakeMove = "ActionMakeMove",
-  MoveAnimationDone = "ActionMoveAnimationDone",
-}
+import { ClientAction, ServerAction } from "./message";
 
 export function initSocket(
   gameId: string,
@@ -39,13 +27,13 @@ export function initSocket(
     }
 
     switch (payload.type) {
-      case ReceiveAction.Lobby:
+      case ClientAction.ClientActionLobby:
         handleLobbyUpdate(contentContainer, payload.data, gameId, socket);
         break;
-      case ReceiveAction.Track:
+      case ClientAction.ClientActionTrack:
         handleTrackUpdate(contentContainer, payload.data, socket);
         break;
-      case ReceiveAction.Move:
+      case ClientAction.ClientActionMove:
         handleMove(JSON.parse(payload.data), socket);
         break;
       default:
@@ -68,17 +56,32 @@ function handleMove(
     `player-${playerId}`,
   ) as SVGCircleElement | null;
 
-  if (!player) {
+  const canvas = document.getElementById("canvas") as SVGSVGElement | null;
+
+  if (!player || !canvas) {
     return;
   }
 
-  animatePlayerToPosition(player, point.x * 5, point.y * 5, 500, () => {
-    socket.send(newPayload(SendAction.MoveAnimationDone));
+  var path = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  const playerX = player.getAttribute("cx") ?? "";
+  const playerY = player.getAttribute("cy") ?? "";
+  const playerColor = player.getAttribute("fill") ?? "";
+  console.log(playerX, playerY, playerColor);
+  path.setAttribute("x1", playerX);
+  path.setAttribute("y1", playerY);
+  path.setAttribute("x2", playerX);
+  path.setAttribute("y2", playerY);
+  path.setAttribute("stroke", playerColor);
+  canvas.appendChild(path);
+
+  animatePlayerToPosition(player, path, point.x * 5, point.y * 5, 500, () => {
+    socket.send(newPayload(ServerAction.ServerActionMoveAnimationDone));
   });
 }
 
 function animatePlayerToPosition(
   player: SVGCircleElement,
+  path: SVGLineElement,
   newX: number,
   newY: number,
   duration: number,
@@ -90,10 +93,12 @@ function animatePlayerToPosition(
 
   function step(timestamp: number) {
     const progress = Math.min((timestamp - start) / duration, 1);
-    const x = startX + (newX - startX) * progress;
-    const y = startY + (newY - startY) * progress;
-    player.setAttribute("cx", x.toString());
-    player.setAttribute("cy", y.toString());
+    const x = (startX + (newX - startX) * progress).toString();
+    const y = (startY + (newY - startY) * progress).toString();
+    player.setAttribute("cx", x);
+    player.setAttribute("cy", y);
+    path.setAttribute("x2", x);
+    path.setAttribute("y2", y);
 
     if (progress < 1) {
       requestAnimationFrame(step);
@@ -113,10 +118,10 @@ function handleTrackUpdate(
   contentContainer.innerHTML = html;
   connectOptions(
     ".starting-position-option",
-    SendAction.ChooseStartingPosition,
+    ServerAction.ServerActionChooseStartingPosition,
     socket,
   );
-  connectOptions(".player-option", SendAction.MakeMove, socket);
+  connectOptions(".player-option", ServerAction.ServerActionMakeMove, socket);
 }
 
 function handleLobbyUpdate(
@@ -142,7 +147,7 @@ function handleLobbyUpdate(
     changeNameButton.addEventListener("click", () => {
       const value = changeNameInput.value;
       if (value.length === 0 || value.length > 20) return;
-      const payload = newPayload(SendAction.NameChange, value);
+      const payload = newPayload(ServerAction.ServerActionNameChange, value);
       socket.send(payload);
       changeNameInput.value = "";
     });
@@ -151,7 +156,7 @@ function handleLobbyUpdate(
   const startButton = document.getElementById("start-button");
   if (startButton) {
     startButton.addEventListener("click", () => {
-      const payload = newPayload(SendAction.ToggleReady);
+      const payload = newPayload(ServerAction.ServerActionToggleReady);
       socket.send(payload);
     });
   }
@@ -159,7 +164,7 @@ function handleLobbyUpdate(
 
 function connectOptions(
   className: string,
-  actionType: SendAction,
+  actionType: ServerAction,
   socket: WebSocket,
 ) {
   document.querySelectorAll(className)?.forEach((opt) => {

@@ -20,7 +20,7 @@ func renderLobby(race *game.Race, target *game.Player) (string, []byte) {
 		log.Println(err)
 		return "", []byte{}
 	}
-	return "Lobby", buf.Bytes()
+	return "ClientActionLobby", buf.Bytes()
 }
 
 type newPositionPayload struct {
@@ -37,7 +37,7 @@ func renderNewPosition(playerToMove *game.Player, newPos game.Point) (string, []
 		log.Println(err)
 		return "", []byte{}
 	}
-	return "Move", data
+	return "ClientActionMove", data
 }
 
 func renderTrack(race *game.Race, target *game.Player) (string, []byte) {
@@ -50,5 +50,5 @@ func renderTrack(race *game.Race, target *game.Player) (string, []byte) {
 		log.Println(err)
 		return "", []byte{}
 	}
-	return "Track", buf.Bytes()
+	return "ClientActionTrack", buf.Bytes()
 }

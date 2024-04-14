@@ -71,7 +71,7 @@ func Race(race *game.Race, target *game.Player) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg viewBox=\"0 0 100 100\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<svg id=\"canvas\" viewBox=\"0 0 100 100\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
