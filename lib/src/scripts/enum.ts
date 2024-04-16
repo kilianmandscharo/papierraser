@@ -1,7 +1,14 @@
+export enum GamePhase {
+  GamePhaseLobby = "GamePhaseLobby",
+  GamePhasePregame = "GamePhasePregame",
+  GamePhaseStarted = "GamePhaseStarted",
+  GamePhaseFinished = "GamePhaseFinished",
+}
+
 export enum ClientAction {
-  ClientActionLobby = "ClientActionLobby",
-  ClientActionTrack = "ClientActionTrack",
-  ClientActionMove = "ClientActionMove",
+  ClientActionDrawRace = "ClientActionDrawRace",
+  ClientActionDrawLobby = "ClientActionDrawLobby",
+  ClientActionDrawNewPosition = "ClientActionDrawNewPosition",
 }
 
 export enum ServerAction {

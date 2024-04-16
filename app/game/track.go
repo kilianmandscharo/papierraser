@@ -1,9 +1,11 @@
 package game
 
 type Track struct {
-	Width, Height int
-	Inner, Outer  Path
-	Finish        [2]Point
+	Width  int      `json:"width"`
+	Height int      `json:"height"`
+	Inner  Path     `json:"inner"`
+	Outer  Path     `json:"outer"`
+	Finish [2]Point `json:"finish"`
 }
 
 var track = Track{

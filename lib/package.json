@@ -8,15 +8,21 @@
     "clean": "rm ../app/static/js/main.js 2>/dev/null || true",
     "copy": "cp ./build/main.js ../app/static/js/main.js",
     "build": "run-s bundle clean copy",
-    "generate": "esbuild ./src/tools/generator.ts --bundle --platform=node --outfile=build/generator.js && node ./build/generator.js"
+    "generate": "esbuild ./src/tools/structTranspiler.ts --bundle --platform=node --outfile=build/structTranspiler.js && node ./build/structTranspiler.js",
+    "watch": "nodemon --exec 'npm run build' --watch ./src/scripts/ --ext js,ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/d3": "^7.4.3",
     "@types/node": "^20.12.7",
     "esbuild": "0.20.2",
+    "nodemon": "^3.1.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "d3": "^7.9.0"
   }
 }

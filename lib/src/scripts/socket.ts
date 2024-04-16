@@ -1,4 +1,5 @@
-import { ClientAction, ServerAction } from "./message";
+import { ClientAction, ServerAction } from "./enum";
+import { Race } from "./race";
 
 export function initSocket(
   gameId: string,
@@ -27,19 +28,27 @@ export function initSocket(
     }
 
     switch (payload.type) {
-      case ClientAction.ClientActionLobby:
+      case ClientAction.ClientActionDrawLobby:
         handleLobbyUpdate(contentContainer, payload.data, gameId, socket);
         break;
-      case ClientAction.ClientActionTrack:
-        handleTrackUpdate(contentContainer, payload.data, socket);
+      case ClientAction.ClientActionDrawRace:
+        handleDrawRace(contentContainer, JSON.parse(payload.data));
         break;
-      case ClientAction.ClientActionMove:
+      // case ClientAction.ClientActionTrack:
+      //   handleTrackUpdate(contentContainer, payload.data, socket);
+      //   break;
+      case ClientAction.ClientActionDrawNewPosition:
         handleMove(JSON.parse(payload.data), socket);
         break;
       default:
         break;
     }
   });
+}
+
+function handleDrawRace(contentContainer: HTMLElement, data: any) {
+  const race = new Race(data);
+  contentContainer.append(race.create());
 }
 
 function handleMove(
@@ -110,19 +119,19 @@ function animatePlayerToPosition(
   requestAnimationFrame(step);
 }
 
-function handleTrackUpdate(
-  contentContainer: HTMLElement,
-  html: string,
-  socket: WebSocket,
-) {
-  contentContainer.innerHTML = html;
-  connectOptions(
-    ".starting-position-option",
-    ServerAction.ServerActionChooseStartingPosition,
-    socket,
-  );
-  connectOptions(".player-option", ServerAction.ServerActionMakeMove, socket);
-}
+// function handleTrackUpdate(
+//   contentContainer: HTMLElement,
+//   html: string,
+//   socket: WebSocket,
+// ) {
+//   contentContainer.innerHTML = html;
+//   connectOptions(
+//     ".starting-position-option",
+//     ServerAction.ServerActionChooseStartingPosition,
+//     socket,
+//   );
+//   connectOptions(".player-option", ServerAction.ServerActionMakeMove, socket);
+// }
 
 function handleLobbyUpdate(
   contentContainer: HTMLElement,
@@ -162,26 +171,26 @@ function handleLobbyUpdate(
   }
 }
 
-function connectOptions(
-  className: string,
-  actionType: ServerAction,
-  socket: WebSocket,
-) {
-  document.querySelectorAll(className)?.forEach((opt) => {
-    const option = opt as SVGCircleElement;
-    const [_, rest] = option.id.split("-");
-    const [x, y] = rest.split(",");
-    option.addEventListener("click", () => {
-      if (socket && option.classList.length > 0) {
-        const payload = newPayload(actionType, {
-          x: parseInt(x),
-          y: parseInt(y),
-        });
-        socket.send(payload);
-      }
-    });
-  });
-}
+// function connectOptions(
+//   className: string,
+//   actionType: ServerAction,
+//   socket: WebSocket,
+// ) {
+//   document.querySelectorAll(className)?.forEach((opt) => {
+//     const option = opt as SVGCircleElement;
+//     const [_, rest] = option.id.split("-");
+//     const [x, y] = rest.split(",");
+//     option.addEventListener("click", () => {
+//       if (socket && option.classList.length > 0) {
+//         const payload = newPayload(actionType, {
+//           x: parseInt(x),
+//           y: parseInt(y),
+//         });
+//         socket.send(payload);
+//       }
+//     });
+//   });
+// }
 
 function newPayload(type: string, data?: any) {
   return JSON.stringify({ type, data });

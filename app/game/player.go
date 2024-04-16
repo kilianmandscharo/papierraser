@@ -11,14 +11,14 @@ import (
 )
 
 type Player struct {
-	Id      int
-	Name    string
-	Path    Path
-	Addr    string
-	Conn    *websocket.Conn
-	Ready   bool
-	Crashed bool
-	Color   string
+	Id      int             `json:"id"`
+	Name    string          `json:"name"`
+	Path    Path            `json:"path"`
+	Addr    string          `json:"addr"`
+	Conn    *websocket.Conn `json:"conn"`
+	Ready   bool            `json:"ready"`
+	Crashed bool            `json:"crashed"`
+	Color   string          `json:"color"`
 }
 
 type Velocity struct {

@@ -4,19 +4,23 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
+	"github.com/kilianmandscharo/papierraser/enum"
 )
 
 type Race struct {
-	Track    Track
-	Players  []*Player
-	Started  bool
-	Finished bool
-	Turn     int
-	Winner   int
+	Track     Track     `json:"track"`
+	Players   []*Player `json:"players"`
+	Turn      int       `json:"turn"`
+	Winner    int       `json:"winner"`
+	GamePhase enum.GamePhase
 }
 
 func NewRace() *Race {
-	return &Race{Track: track, Players: make([]*Player, 0)}
+	return &Race{
+		Track:     track,
+		Players:   make([]*Player, 0),
+		GamePhase: enum.GamePhaseLobby,
+	}
 }
 
 func (r *Race) ConnectPlayer(addr string, conn *websocket.Conn) {
@@ -52,9 +56,9 @@ func (r *Race) AllPlayersReady() bool {
 	return true
 }
 
-func (r *Race) StartIfReady() {
+func (r *Race) StartPregameIfReady() {
 	if r.AllPlayersReady() {
-		r.Started = true
+		r.GamePhase = enum.GamePhasePregame
 		r.Turn = 1
 	}
 }
@@ -64,10 +68,6 @@ func (r *Race) PlayerReady(addr string) bool {
 		return player.Ready
 	}
 	return false
-}
-
-func (r *Race) End() {
-	r.Finished = true
 }
 
 func (r *Race) numberOfPlayers() int {
@@ -92,7 +92,7 @@ func (r *Race) TogglePlayerReady(addr string) {
 	}
 }
 
-func (r *Race) StartingPositionsSet() bool {
+func (r *Race) startingPositionsSet() bool {
 	for _, player := range r.Players {
 		if len(player.Path) == 0 {
 			return false
@@ -176,7 +176,14 @@ func (r *Race) GetStartingPositionOptions() map[Point]bool {
 func (r *Race) UpdateStartingPosition(addr string, pos Point) {
 	if player := r.getPlayerByAddr(addr); player != nil {
 		player.Path = append(player.Path, pos)
+		if r.startingPositionsSet() {
+			r.GamePhase = enum.GamePhaseStarted
+		}
 	}
+}
+
+func (r *Race) EndRace() {
+	r.GamePhase = enum.GamePhaseFinished
 }
 
 func (r *Race) MakeMove(targetPosition Point) (Point, bool) {

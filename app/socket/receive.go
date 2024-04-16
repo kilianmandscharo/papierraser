@@ -2,6 +2,7 @@ package socket
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/kilianmandscharo/papierraser/enum"
 	"github.com/kilianmandscharo/papierraser/game"
 	"github.com/kilianmandscharo/papierraser/state"
 )
@@ -11,11 +12,11 @@ func handleReceiveActionDisconnectPlayer(ch chan<- state.ActionRequest, gameId s
 		GameId: gameId,
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
 			race.DisconnectPlayer(addr)
-			return func(target *game.Player) (string, []byte) {
-				if race.Started {
-					return renderTrack(race, target)
+			return func(target *game.Player) (enum.ClientAction, []byte) {
+				if race.GamePhase == enum.GamePhaseStarted {
+					return drawRace(race, target)
 				}
-				return renderLobby(race, target)
+				return drawLobby(race, target)
 			}
 		},
 	}
@@ -27,11 +28,12 @@ func handleReceiveActionConnectPlayer(ch chan<- state.ActionRequest, gameId stri
 		GameId: gameId,
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
 			race.ConnectPlayer(addr, conn)
-			return func(target *game.Player) (string, []byte) {
-				if race.Started {
-					return renderTrack(race, target)
-				}
-				return renderLobby(race, target)
+			return func(target *game.Player) (enum.ClientAction, []byte) {
+				// if race.Started {
+				// 	return renderTrack(race, target)
+				// }
+				// return renderLobby(race, target)
+				return drawRace(race, target)
 			}
 		},
 	}
@@ -42,8 +44,8 @@ func handleReceiveActionNameChange(ch chan<- state.ActionRequest, gameId string,
 		GameId: gameId,
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
 			race.UpdatePlayerName(addr, message.Data.(string))
-			return func(target *game.Player) (string, []byte) {
-				return renderLobby(race, target)
+			return func(target *game.Player) (enum.ClientAction, []byte) {
+				return drawLobby(race, target)
 			}
 		},
 	}
@@ -54,12 +56,12 @@ func handleReceiveActionToggleReady(ch chan<- state.ActionRequest, gameId string
 		GameId: gameId,
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
 			race.TogglePlayerReady(addr)
-			race.StartIfReady()
-			return func(target *game.Player) (string, []byte) {
+			race.StartPregameIfReady()
+			return func(target *game.Player) (enum.ClientAction, []byte) {
 				if race.AllPlayersReady() {
-					return renderTrack(race, target)
+					return drawRace(race, target)
 				}
-				return renderLobby(race, target)
+				return drawLobby(race, target)
 			}
 		},
 	}
@@ -71,8 +73,8 @@ func handleReceiveActionChooseStartingPosition(ch chan<- state.ActionRequest, ga
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
 			race.UpdateStartingPosition(addr, game.CastPoint(message.Data))
 
-			return func(target *game.Player) (string, []byte) {
-				return renderTrack(race, target)
+			return func(target *game.Player) (enum.ClientAction, []byte) {
+				return drawRace(race, target)
 			}
 		},
 	}
@@ -85,11 +87,11 @@ func handleReceiveActionMakeMove(ch chan<- state.ActionRequest, gameId string, m
 			playerToMove := race.CurrentPlayer()
 			movedTo, hasMoved := race.MakeMove(game.CastPoint(message.Data))
 
-			return func(target *game.Player) (string, []byte) {
+			return func(target *game.Player) (enum.ClientAction, []byte) {
 				if hasMoved {
-					return renderNewPosition(playerToMove, movedTo)
+					return drawNewPosition(playerToMove, movedTo)
 				}
-				return renderTrack(race, target)
+				return drawRace(race, target)
 			}
 		},
 	}
@@ -99,8 +101,8 @@ func handleReceiveActionMoveAnimationDone(ch chan<- state.ActionRequest, gameId 
 	ch <- state.ActionRequest{
 		GameId: gameId,
 		UpdateFunc: func(race *game.Race) state.RenderFunc {
-			return func(target *game.Player) (string, []byte) {
-				return renderTrack(race, target)
+			return func(target *game.Player) (enum.ClientAction, []byte) {
+				return drawRace(race, target)
 			}
 		},
 	}

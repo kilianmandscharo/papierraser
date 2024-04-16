@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/kilianmandscharo/papierraser/enum"
 	"github.com/kilianmandscharo/papierraser/routine"
 	"github.com/kilianmandscharo/papierraser/state"
 )
@@ -54,16 +55,16 @@ func Handler(routineChan routine.ChannelSend) http.HandlerFunc {
 				return
 			}
 
-			switch message.Type {
-			case "ServerActionNameChange":
+			switch enum.ServerAction(message.Type) {
+			case enum.ServerActionNameChange:
 				handleReceiveActionNameChange(stateChan, gameId, addr, message)
-			case "ServerActionToggleReady":
+			case enum.ServerActionToggleReady:
 				handleReceiveActionToggleReady(stateChan, gameId, addr)
-			case "ServerActionChooseStartingPosition":
+			case enum.ServerActionChooseStartingPosition:
 				handleReceiveActionChooseStartingPosition(stateChan, gameId, addr, message)
-			case "ServerActionMakeMove":
+			case enum.ServerActionMakeMove:
 				handleReceiveActionMakeMove(stateChan, gameId, message)
-			case "ServerActionMoveAnimationDone":
+			case enum.ServerActionMoveAnimationDone:
 				handleReceiveActionMoveAnimationDone(stateChan, gameId)
 			default:
 				log.Printf("unknown message type '%s' provided by client\n", message.Type)

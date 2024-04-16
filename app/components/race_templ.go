@@ -12,6 +12,7 @@ import "bytes"
 
 import "fmt"
 import "github.com/kilianmandscharo/papierraser/game"
+import "github.com/kilianmandscharo/papierraser/enum"
 
 func Race(race *game.Race, target *game.Player) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -34,7 +35,7 @@ func Race(race *game.Race, target *game.Player) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !race.StartingPositionsSet() {
+		if race.GamePhase == enum.GamePhasePregame {
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -42,7 +43,7 @@ func Race(race *game.Race, target *game.Player) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("'%s', wähle deine Anfangsposition", race.PickPlayerForStartingPosition().Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/race.templ`, Line: 10, Col: 102}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/race.templ`, Line: 11, Col: 102}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -60,7 +61,7 @@ func Race(race *game.Race, target *game.Player) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("'%s', du bist am Zug", race.CurrentPlayer().Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/race.templ`, Line: 12, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/race.templ`, Line: 13, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -95,7 +96,7 @@ func Race(race *game.Race, target *game.Player) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !race.StartingPositionsSet() {
+		if race.GamePhase == enum.GamePhasePregame {
 			templ_7745c5c3_Err = StartingPositionOptions(race, target).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/kilianmandscharo/papierraser/enum"
 	"github.com/kilianmandscharo/papierraser/game"
 )
 
 type UpdateFunc = func(*game.Race) RenderFunc
-type RenderFunc func(*game.Player) (string, []byte)
+type RenderFunc func(*game.Player) (enum.ClientAction, []byte)
 
 type ActionRequest struct {
 	GameId     string
